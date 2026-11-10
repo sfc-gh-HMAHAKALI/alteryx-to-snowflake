@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!-- Synthetic regression fixture (no customer data). Exercises: Input, Text Input, Select (cast), Formula (chained),
+     Filter (simple + custom), Join (L/J/R, Right_ prefix rule), Union by name, Summarize, Sort+Unique, Cross Tab,
+     Transpose, Dynamic Rename, Cleanse macro, Test, Output. -->
+<AlteryxDocument yxmdVer="2023.1">
+  <Nodes>
+    <Node ToolID="1"><GuiSettings Plugin="AlteryxBasePluginsGui.DbFileInput.DbFileInput"/>
+      <Properties><Configuration><File OutputFileName="">C:\data\orders.csv</File></Configuration>
+        <MetaInfo connection="Output"><RecordInfo>
+          <Field name="Order" type="V_String"/><Field name="Customer" type="V_String"/>
+          <Field name="Qty" type="V_String"/><Field name="Price" type="V_String"/><Field name="Period" type="V_String"/>
+        </RecordInfo></MetaInfo></Properties></Node>
+    <Node ToolID="2"><GuiSettings Plugin="AlteryxBasePluginsGui.TextInput.TextInput"/>
+      <Properties><Configuration><NumRows value="2"/><Fields><Field name="Customer"/><Field name="Region"/></Fields>
+        <Data><r><c>acme</c><c>West</c></r><r><c>Globex</c><c/></r></Data></Configuration></Properties></Node>
+    <Node ToolID="3"><GuiSettings Plugin="AlteryxBasePluginsGui.AlteryxSelect.AlteryxSelect"/>
+      <Properties><Configuration><OrderChanged value="False"/><SelectFields>
+        <SelectField field="Qty" selected="True" type="Double" size="8"/>
+        <SelectField field="Price" selected="True" type="Double" size="8"/>
+        <SelectField field="*Unknown" selected="True"/></SelectFields></Configuration></Properties></Node>
+    <Node ToolID="4"><GuiSettings Plugin="AlteryxBasePluginsGui.Formula.Formula"/>
+      <Properties><Configuration><FormulaFields>
+        <FormulaField field="Amount" type="Double" expression="[Qty]*[Price]"/>
+        <FormulaField field="Band" type="V_WString" expression="IF [Amount] &gt; 100 THEN &quot;High&quot; ELSE &quot;Low&quot; ENDIF"/>
+        <FormulaField field="Customer" type="V_String" expression="Trim([Customer])"/>
+      </FormulaFields></Configuration></Properties></Node>
+    <Node ToolID="5"><GuiSettings Plugin="AlteryxBasePluginsGui.Filter.Filter"/>
+      <Properties><Configuration><Mode>Custom</Mode><Expression>!Contains([Order], "TEST")</Expression></Configuration></Properties></Node>
+    <Node ToolID="6"><GuiSettings Plugin="AlteryxBasePluginsGui.Join.Join"/>
+      <Properties><Configuration joinByRecordPos="False">
+        <JoinInfo connection="Left"><Field field="Customer"/></JoinInfo>
+        <JoinInfo connection="Right"><Field field="Customer"/></JoinInfo>
+        <SelectConfiguration><Configuration outputConnection="Join"><OrderChanged value="False"/><SelectFields>
+          <SelectField field="*Unknown" selected="True"/></SelectFields></Configuration></SelectConfiguration>
+      </Configuration></Properties></Node>
+    <Node ToolID="7"><GuiSettings Plugin="AlteryxBasePluginsGui.Union.Union"/>
+      <Properties><Configuration><Mode>ByName</Mode><ByName_OutputMode>All</ByName_OutputMode></Configuration></Properties></Node>
+    <Node ToolID="8"><GuiSettings Plugin="AlteryxSpatialPluginsGui.Summarize.Summarize"/>
+      <Properties><Configuration><SummarizeFields>
+        <SummarizeField field="Band" action="GroupBy" rename="Band"/>
+        <SummarizeField field="Amount" action="Sum" rename="Sum_Amount"/>
+        <SummarizeField field="Order" action="Count" rename="Count"/></SummarizeFields></Configuration></Properties></Node>
+    <Node ToolID="9"><GuiSettings Plugin="AlteryxBasePluginsGui.Sort.Sort"/>
+      <Properties><Configuration><SortInfo><Field field="Amount" order="Descending"/></SortInfo></Configuration></Properties></Node>
+    <Node ToolID="10"><GuiSettings Plugin="AlteryxBasePluginsGui.Unique.Unique"/>
+      <Properties><Configuration><UniqueFields><Field field="Customer"/></UniqueFields></Configuration></Properties></Node>
+    <Node ToolID="11"><GuiSettings Plugin="AlteryxBasePluginsGui.CrossTab.CrossTab"/>
+      <Properties><Configuration><GroupFields><Field field="Customer"/></GroupFields><HeaderField field="Period"/>
+        <DataField field="Amount"/><Methods><Method method="Sum"/></Methods></Configuration>
+        <MetaInfo connection="Output"><RecordInfo><Field name="Customer" type="V_String"/>
+          <Field name="2025_01" type="Double"/><Field name="2025_02" type="Double"/></RecordInfo></MetaInfo></Properties></Node>
+    <Node ToolID="12"><GuiSettings Plugin="AlteryxBasePluginsGui.DynamicRename.DynamicRename"/>
+      <Properties><Configuration><RenameMode>Formula</RenameMode><Fields>
+        <Field name="*Unknown"/><Field name="Customer" selected="False"/></Fields>
+        <Expression>Right([_CurrentField_], 2)+"/"+Left([_CurrentField_],4)</Expression></Configuration></Properties></Node>
+    <Node ToolID="13"><GuiSettings Plugin="AlteryxBasePluginsGui.Transpose.Transpose"/>
+      <Properties><Configuration><KeyFields><Field field="Customer"/></KeyFields>
+        <DataFields><Field field="*Unknown" selected="True"/></DataFields></Configuration></Properties></Node>
+    <Node ToolID="14"><GuiSettings/><Properties><Configuration>
+        <Value name="List Box (11)">"Region"</Value><Value name="Check Box (84)">True</Value>
+        <Value name="Check Box (15)">True</Value><Value name="Check Box (77)">True</Value>
+        <Value name="Drop Down (81)">upper</Value></Configuration></Properties>
+      <EngineSettings Macro="Cleanse.yxmc"/></Node>
+    <Node ToolID="15"><GuiSettings Plugin="AlteryxBasePluginsGui.Test.Test"/>
+      <Properties><Configuration><Tests><Test><Name>no unmatched</Name><Connection>#1</Connection>
+        <Type>RecCountValue</Type><Value>0</Value></Test></Tests></Configuration></Properties></Node>
+    <Node ToolID="16"><GuiSettings Plugin="AlteryxBasePluginsGui.DbFileOutput.DbFileOutput"/>
+      <Properties><Configuration><File FileFormat="25">C:\out\summary.xlsx|||Sheet1</File></Configuration></Properties></Node>
+  </Nodes>
+  <Connections>
+    <Connection><Origin ToolID="1" Connection="Output"/><Destination ToolID="3" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="3" Connection="Output"/><Destination ToolID="4" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="4" Connection="Output"/><Destination ToolID="5" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="5" Connection="True"/><Destination ToolID="6" Connection="Left"/></Connection>
+    <Connection><Origin ToolID="2" Connection="Output"/><Destination ToolID="14" Connection="Input2"/></Connection>
+    <Connection><Origin ToolID="14" Connection="Output26"/><Destination ToolID="6" Connection="Right"/></Connection>
+    <Connection name="#1"><Origin ToolID="6" Connection="Join"/><Destination ToolID="7" Connection="Input"/></Connection>
+    <Connection name="#2"><Origin ToolID="6" Connection="Left"/><Destination ToolID="7" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="7" Connection="Output"/><Destination ToolID="8" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="8" Connection="Output"/><Destination ToolID="16" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="7" Connection="Output"/><Destination ToolID="9" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="9" Connection="Output"/><Destination ToolID="10" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="5" Connection="True"/><Destination ToolID="11" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="11" Connection="Output"/><Destination ToolID="12" Connection="Input"/></Connection>
+    <Connection><Origin ToolID="12" Connection="Output"/><Destination ToolID="13" Connection="Input"/></Connection>
+    <Connection name="#1"><Origin ToolID="6" Connection="Left"/><Destination ToolID="15" Connection="Input"/></Connection>
+  </Connections>
+  <Properties><MetaInfo><Name>fixture</Name></MetaInfo></Properties>
+</AlteryxDocument>
